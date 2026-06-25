@@ -3,84 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Revenant Ink | Homepage</title>
-    <link rel="icon" href="revenant ink logo (icon).jpg">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="animations.css">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <title>Revenant Admin Panel</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: sans-serif; padding: 40px; text-align: center; }
+        button { background: #ac5891; color: white; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 20px; }
+        button:hover { background: #c26fa7; }
+        input { padding: 10px; width: 300px; background: #333; border: 1px solid #555; color: white; margin-bottom: 20px; }
+    </style>
 </head>
 <body>
 
-    <div id="promo-banner-slot"></div>
+    <h1>Revenant Ink Control Panel</h1>
+    <p>Toggle the holiday special banner live on GitHub Pages</p>
 
-    <div id="nav" class="nav">
-        <a id="homepageLink" href="#container">
-            <div id="rightsidecontainer" class="container">
-                <img src="logo.JPG" id="logo" draggable="false"/> 
-                <span class="logoHeader">Revenant Ink Collective</span>
-            </div>
-        </a>
-        
-        <div id="leftsidecontainer" class="container">
-            <a href="artists.html" class="nav-link nav1">Artists</a>
-            <span class="divider d1">|</span>
-            <a href="tel:6163261753" class="nav-link nav2">Call</a>
-            <span class="divider d2">|</span>
-            <a href="sms:6163261753" class="nav-link nav3">Text</a>
-        </div>
+    <div>
+        <input type="password" id="github-token" placeholder="Paste GitHub Personal Access Token Here"><br>
     </div>
 
-    <div id="body-content" class="body-content">
-        <div class="hero-section">
-            <h1 id="homepageContentHeader" class="contentHeader"><span class="seperateColorWay">REVENANT</span> INK</h1>
-            <p><span class="seperateColorWay">Custom</span> Tattooing & Fine Art Collective</p>
-        </div>
-    </div>
+    <button id="toggle-btn" onclick="togglePromotion(true)">🚀 Go Live (40% OFF)</button>
+    <button id="off-btn" onclick="togglePromotion(false)" style="background: #444;">📴 Turn Off Banner</button>
+
+    <p id="status-text" style="margin-top: 20px; color: #aaa;"></p>
 
     <script>
-        // --- YOUR CENTRAL CONTROL SWITCH ---
-        const SPECIAL_PROMOTION = {
-            isLive: true,                                   // Set to false to instantly turn the banner off
-            message: "⚡ HOLIDAY SPECIAL: 40% OFF EVERYTHING! ⚡" // Type your promotional text here
-        };
+        // Replace these coordinates with your actual GitHub project details
+        const OWNER = "YOUR_GITHUB_USERNAME"; 
+        const REPO = "YOUR_REPOSITORY_NAME";
+        const FILE_PATH = "index.html"; // The file containing your SPECIAL_PROMOTION configuration
 
-        // --- THE LOGIC ENGINE ---
-        // This watches the switch above and handles your navbar offset adjustments on the fly
-        if (SPECIAL_PROMOTION.isLive) {
-            const slot = document.getElementById('promo-banner-slot');
-            const navBar = document.getElementById('nav');
-            const mainContent = document.getElementById('body-content');
+        async function togglePromotion(turnOn) {
+            const token = document.getElementById('github-token').value;
+            const status = document.getElementById('status-text');
 
-            // 1. Inject the banner and its customized layout directly above your navbar
-            slot.innerHTML = `
-                <div id="live-promo-banner" style="position: absolute; top: 0; left: 0; width: 100%; height: 40px; background-color: #ac5891; color: white; display: flex; align-items: center; justify-content: center; font-family: 'syne mono', monospace; font-size: 14px; font-weight: bold; letter-spacing: 1px; z-index: 9999999999; text-transform: uppercase; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.2);">
-                    ${SPECIAL_PROMOTION.message}
-                </div>
-            `;
+            if (!token) {
+                status.innerText = "❌ Please enter your GitHub Personal Access Token first.";
+                return;
+            }
 
-            // 2. Shift the fixed navigation bar downward so it doesn't get covered by the banner
-            navBar.style.top = "40px";
+            status.innerText = "Connecting to GitHub...";
 
-            // 3. Compensate layout margin container so your main section text doesn't hide underneath
-            // For desktop viewports
-            if (window.innerWidth > 768) {
-                mainContent.style.marginTop = "130px"; // 90px nav height + 40px promo height
-                mainContent.style.height = "calc(100vh - 130px)";
-            } else {
-                // For mobile device viewports
-                mainContent.style.marginTop = "120px"; // 80px mobile nav + 40px promo height
-                mainContent.style.height = "calc(100vh - 120px)";
+            try {
+                // Step 1: Fetch the existing file content and its unique SHA fingerprint
+                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(url, {
+                    headers: { "Authorization": `token ${token}` }
+                });
+
+                if (!getResponse.ok) throw new Error("Could not fetch file from GitHub. Check your repository name or token.");
+                
+                const fileData = await getResponse.json();
+                const currentSHA = fileData.sha;
+                
+                // Decode the base64 code string sent by GitHub into readable text
+                let fileContent = atob(fileData.content);
+
+                // Step 2: Swap the boolean switch inside the text using a regular expression match
+                if (turnOn) {
+                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: true");
+                } else {
+                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: false");
+                }
+
+                // Step 3: Package the modified content back into base64 format
+                const updatedContentBase64 = btoa(unescape(encodeURIComponent(fileContent)));
+
+                // Step 4: Send a PUT request to update and push the commit directly to the repository
+                status.innerText = "Pushing commit directly to repository...";
+                const putResponse = await fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: turnOn ? "Build: Activate Promo Banner" : "Build: Deactivate Promo Banner",
+                        content: updatedContentBase64,
+                        sha: currentSHA
+                    })
+                });
+
+                if (putResponse.ok) {
+                    status.innerHTML = `🟢 <strong>Success!</strong> GitHub is rebuilding your site right now. Will go live on mobile phones in ~60 seconds.`;
+                } else {
+                    const errorDetails = await putResponse.json();
+                    status.innerText = `❌ Push Failed: ${errorDetails.message}`;
+                }
+
+            } catch (err) {
+                status.innerText = `❌ Error: ${err.message}`;
             }
         }
     </script>
-
 </body>
 </html>
