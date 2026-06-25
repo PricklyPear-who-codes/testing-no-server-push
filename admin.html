@@ -24,7 +24,9 @@
         }
         h1 { font-size: 22px; margin-bottom: 5px; letter-spacing: 0.5px; }
         .subtitle { color: #888; font-size: 14px; margin-bottom: 25px; }
-        input[type="password"] { 
+        
+        /* Global styling for ALL inputs instead of targeting just password fields */
+        input { 
             padding: 12px; 
             width: 100%; 
             background: #252525; 
@@ -35,10 +37,11 @@
             box-sizing: border-box;
             font-size: 14px;
         }
-        input[type="password"]:focus {
+        input:focus {
             border-color: #ac5891;
             outline: none;
         }
+        
         .btn-group {
             display: flex;
             gap: 12px;
@@ -53,3 +56,86 @@
             border-radius: 4px; 
             transition: background 0.2s ease;
         }
+        .btn-primary { background: #ac5891; color: white; }
+        .btn-primary:hover { background: #c26fa7; }
+        .btn-secondary { background: #333; color: #ccc; }
+        .btn-secondary:hover { background: #444; color: white; }
+        #status-text { 
+            margin-top: 25px; 
+            font-size: 14px; 
+            line-height: 1.5;
+            color: #aaa; 
+            word-break: break-word;
+        }
+        .debug-err {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            background: #2d1a1a;
+            border: 1px solid #5c2727;
+            border-radius: 4px;
+            color: #ff9999;
+            font-family: monospace;
+            font-size: 12px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h1>Revenant Ink</h1>
+        <div class="subtitle">Promo Banner Deployment System</div>
+
+        <div>
+            <input type="text" id="github-token" placeholder="Enter GitHub Personal Access Token">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-secondary" onclick="togglePromotion(false)">📴 Turn Off</button>
+            <button class="btn-primary" onclick="togglePromotion(true)">🚀 Go Live (40% OFF)</button>
+        </div>
+
+        <div id="status-text">System Idle. Waiting for input authentication parameter...</div>
+    </div>
+
+    <script>
+        // Target coordinates configuration
+        const OWNER = "PricklyPear-who-codes"; 
+        const REPO = "testing-no-server-push";
+        const FILE_PATH = "index.html"; 
+
+        async function togglePromotion(turnOn) {
+            const token = document.getElementById('github-token').value.trim();
+            const status = document.getElementById('status-text');
+
+            if (!token) {
+                status.innerHTML = "<span style='color: #ff6b6b;'>❌ Access Token Missing. Operation aborted.</span>";
+                return;
+            }
+
+            status.innerHTML = "<span style='color: #e5d7c3;'>Connecting to GitHub Core API Gateway...</span>";
+
+            try {
+                // Step 1: Query file metadata to capture the necessary update sequence context (SHA Hash)
+                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(url, {
+                    headers: { "Authorization": `token ${token}` }
+                });
+
+                if (!getResponse.ok) {
+                    const errBody = await getResponse.json().catch(() => ({ message: "Unknown API error" }));
+                    throw new Error(`GitHub API HTTP ${getResponse.status}: ${errBody.message || getResponse.statusText}`);
+                }
+                
+                const fileData = await getResponse.json();
+                const currentSHA = fileData.sha;
+                
+                // Convert payload stream from base64 encoding into structural string notation
+                let fileContent = atob(fileData.content);
+
+                // Step 2: Use search patterns to adjust target configurations directly inside file text
+                if (turnOn) {
+                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: true");
+                } else {
+                    fileContent = fileContent.replace(/isLive:\s*(true|
