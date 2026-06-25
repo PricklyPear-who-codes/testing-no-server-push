@@ -25,7 +25,7 @@
         h1 { font-size: 22px; margin-bottom: 5px; letter-spacing: 0.5px; }
         .subtitle { color: #888; font-size: 14px; margin-bottom: 25px; }
         
-        /* Global styling for ALL inputs instead of targeting just password fields */
+        /* Global input styling */
         input { 
             padding: 12px; 
             width: 100%; 
@@ -65,7 +65,7 @@
             font-size: 14px; 
             line-height: 1.5;
             color: #aaa; 
-            word-break: break-word;
+            word-break: break-all;
         }
         .debug-err {
             display: block;
@@ -100,42 +100,91 @@
     </div>
 
     <script>
-        // Target coordinates configuration
+        // Target Repository Information
         const OWNER = "PricklyPear-who-codes"; 
         const REPO = "testing-no-server-push";
         const FILE_PATH = "index.html"; 
 
         async function togglePromotion(turnOn) {
-            const token = document.getElementById('github-token').value.trim();
+            // Force reset status interface cleanly first
             const status = document.getElementById('status-text');
-
-            if (!token) {
-                status.innerHTML = "<span style='color: #ff6b6b;'>❌ Access Token Missing. Operation aborted.</span>";
-                return;
-            }
-
-            status.innerHTML = "<span style='color: #e5d7c3;'>Connecting to GitHub Core API Gateway...</span>";
+            status.innerHTML = "Initializing connection sequence...";
 
             try {
-                // Step 1: Query file metadata to capture the necessary update sequence context (SHA Hash)
-                const url = `https://api.github.com/repos/PricklyPear-who-codes/testing-no-server-push/contents/index.html`;
+                const tokenInput = document.getElementById('github-token');
+                if (!tokenInput) {
+                    throw new Error("UI element 'github-token' input field missing from page markup.");
+                }
+
+                // Strip spaces or tabs from token
+                const token = tokenInput.value.replace(/\s+/g, '');
+
+                if (!token) {
+                    status.innerHTML = "<span style='color: #ff6b6b;'>❌ Access Token Missing. Paste token first.</span>";
+                    return;
+                }
+
+                status.innerHTML = "<span style='color: #e5d7c3;'>Contacting GitHub Gateway Services...</span>";
+
+                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                
+                // Fire target file lookups
                 const getResponse = await fetch(url, {
                     headers: { "Authorization": `token ${token}` }
                 });
 
                 if (!getResponse.ok) {
-                    const errBody = await getResponse.json().catch(() => ({ message: "Unknown API error" }));
-                    throw new Error(`GitHub API HTTP ${getResponse.status}: ${errBody.message || getResponse.statusText}`);
+                    throw new Error(`GitHub Directory Check Failed (HTTP ${getResponse.status}). Verify your repository configuration string parameters.`);
                 }
                 
                 const fileData = await getResponse.json();
                 const currentSHA = fileData.sha;
                 
-                // Convert payload stream from base64 encoding into structural string notation
+                // Safe string parser transition conversion step
                 let fileContent = atob(fileData.content);
 
-                // Step 2: Use search patterns to adjust target configurations directly inside file text
+                // Modify state metrics within object strings using target regular expressions
                 if (turnOn) {
                     fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: true");
                 } else {
-                    fileContent = fileContent.replace(/isLive:\s*(true|
+                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: false");
+                }
+
+                const updatedContentBase64 = btoa(unescape(encodeURIComponent(fileContent)));
+
+                status.innerHTML = "<span style='color: #e5d7c3;'>Processing authentication and applying file update modifications...</span>";
+                
+                const putResponse = await fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: turnOn ? "Production Dashboard: Set Promo True" : "Production Dashboard: Set Promo False",
+                        content: updatedContentBase64,
+                        sha: currentSHA
+                    })
+                });
+
+                if (putResponse.ok) {
+                    status.innerHTML = `<span style='color: #4cd137;'>🟢 <strong>Success!</strong> GitHub repository modified successfully. Wait 60 seconds for production pipeline reload to complete.</span>`;
+                } else {
+                    const errPayload = await putResponse.json().catch(() => ({ message: "Unknown Write Exception" }));
+                    throw new Error(`GitHub Write Aborted (HTTP ${putResponse.status}): ${errPayload.message}`);
+                }
+
+            } catch (err) {
+                // Global Error Tracker Capture
+                status.innerHTML = `
+                    <span style='color: #ff6b6b;'>❌ Execution Interrupted</span>
+                    <div class="debug-err">
+                        <strong>Technical Message:</strong> ${err.message}<br><br>
+                        <strong>Next step:</strong> If it says HTTP 401, check token values. If it says HTTP 404, look closely at repository spelling inside the code file.
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
