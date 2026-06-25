@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Revenant Ink | Homepage</title>
+    <link rel="icon" href="revenant ink logo (icon).jpg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="animations.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="promo-banner-slot"></div>
+
+    <div id="nav" class="nav">
+        <a id="homepageLink" href="#container">
+            <div id="rightsidecontainer" class="container">
+                <img src="logo.JPG" id="logo" draggable="false"/> 
+                <span class="logoHeader">Revenant Ink Collective</span>
+            </div>
+        </a>
+        
+        <div id="leftsidecontainer" class="container">
+            <a href="artists.html" class="nav-link nav1">Artists</a>
+            <span class="divider d1">|</span>
+            <a href="tel:6163261753" class="nav-link nav2">Call</a>
+            <span class="divider d2">|</span>
+            <a href="sms:6163261753" class="nav-link nav3">Text</a>
+        </div>
+    </div>
+
+    <div id="body-content" class="body-content">
+        <div class="hero-section">
+            <h1 id="homepageContentHeader" class="contentHeader"><span class="seperateColorWay">REVENANT</span> INK</h1>
+            <p><span class="seperateColorWay">Custom</span> Tattooing & Fine Art Collective</p>
+        </div>
+    </div>
+
+    <script>
+        // --- LIVE APP SWITCH CONTAINER ---
+        // Do not alter the structure of this object manually.
+        // The admin.html backend controller rewrites this switch automatically using Regular Expressions.
+        const SPECIAL_PROMOTION = {
+            isLive: false,
+            message: "⚡ HOLIDAY SPECIAL: 40% OFF EVERYTHING! ⚡"
+        };
+
+        // --- RUNTIME RENDER ENGINE ---
+        if (SPECIAL_PROMOTION.isLive) {
+            const slot = document.getElementById('promo-banner-slot');
+            const navBar = document.getElementById('nav');
+            const mainContent = document.getElementById('body-content');
+
+            // Build structural components dynamically
+            slot.innerHTML = `
+                <div id="live-promo-banner" style="position: absolute; top: 0; left: 0; width: 100%; height: 40px; background-color: #ac5891; color: white; display: flex; align-items: center; justify-content: center; font-family: 'syne mono', monospace; font-size: 14px; font-weight: bold; letter-spacing: 1px; z-index: 9999999999; text-transform: uppercase; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                    ${SPECIAL_PROMOTION.message}
+                </div>
+            `;
+
+            // Adjust navigation anchors downward to accommodate layout changes
+            navBar.style.top = "40px";
+
+            // Recalculate margins based on screen sizes
+            if (window.innerWidth > 768) {
+                mainContent.style.marginTop = "130px"; 
+                mainContent.style.height = "calc(100vh - 130px)";
+            } else {
+                mainContent.style.marginTop = "120px"; 
+                mainContent.style.height = "calc(100vh - 120px)";
+            }
+        }
+    </script>
+
+</body>
+</html>
