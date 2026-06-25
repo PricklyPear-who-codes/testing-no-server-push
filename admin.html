@@ -24,7 +24,7 @@
         }
         h1 { font-size: 22px; margin-bottom: 5px; letter-spacing: 0.5px; }
         .subtitle { color: #888; font-size: 14px; margin-bottom: 25px; }
-        input { 
+        input[type="password"] { 
             padding: 12px; 
             width: 100%; 
             background: #252525; 
@@ -35,7 +35,7 @@
             box-sizing: border-box;
             font-size: 14px;
         }
-        input:focus {
+        input[type="password"]:focus {
             border-color: #ac5891;
             outline: none;
         }
@@ -53,104 +53,3 @@
             border-radius: 4px; 
             transition: background 0.2s ease;
         }
-        .btn-primary { background: #ac5891; color: white; }
-        .btn-primary:hover { background: #c26fa7; }
-        .btn-secondary { background: #333; color: #ccc; }
-        .btn-secondary:hover { background: #444; color: white; }
-        #status-text { 
-            margin-top: 25px; 
-            font-size: 14px; 
-            line-height: 1.5;
-            color: #aaa; 
-        }
-    </style>
-</head>
-<body>
-
-    <div class="admin-box">
-        <h1>Revenant Ink</h1>
-        <div class="subtitle">Promo Banner Deployment System</div>
-
-        <div>
-            <input type="text" id="github-token" placeholder="Enter GitHub Personal Access Token">
-        </div>
-
-        <div class="btn-group">
-            <button class="btn-secondary" onclick="togglePromotion(false)">📴 Turn Off</button>
-            <button class="btn-primary" onclick="togglePromotion(true)">🚀 Go Live (40% OFF)</button>
-        </div>
-
-        <div id="status-text">System Idle. Waiting for input authentication parameter...</div>
-    </div>
-
-    <script>
-        // Set target credentials to line up perfectly with your account profile
-        const OWNER = "PricklyPear-who-codes"; 
-        const REPO = "testing-no-server-push";
-        const FILE_PATH = "index.html"; 
-
-        async function togglePromotion(turnOn) {
-            const token = document.getElementById('github-token').value;
-            const status = document.getElementById('status-text');
-
-            if (!token) {
-                status.innerHTML = "<span style='color: #ff6b6b;'>❌ Access Token Missing. Operation aborted.</span>";
-                return;
-            }
-
-            status.innerHTML = "<span style='color: #e5d7c3;'>Connecting to GitHub Core API Gateway...</span>";
-
-            try {
-                // Step 1: Query file metadata to capture the necessary update sequence context (SHA Hash)
-                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
-                const getResponse = await fetch(url, {
-                    headers: { "Authorization": `token ${token}` }
-                });
-
-                if (!getResponse.ok) throw new Error("Connection failed. Check target credentials or verify token permissions.");
-                
-                const fileData = await getResponse.json();
-                const currentSHA = fileData.sha;
-                
-                // Convert payload stream from base64 encoding into structural string notation
-                let fileContent = atob(fileData.content);
-
-                // Step 2: Use search patterns to adjust target configurations directly inside file text
-                if (turnOn) {
-                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: true");
-                } else {
-                    fileContent = fileContent.replace(/isLive:\s*(true|false)/, "isLive: false");
-                }
-
-                // Step 3: Re-encode string arrays safely back into standard base64 structures
-                const updatedContentBase64 = btoa(unescape(encodeURIComponent(fileContent)));
-
-                // Step 4: Dispatch payload tracking changes directly into your production tree branches
-                status.innerHTML = "<span style='color: #e5d7c3;'>Authenticating credentials & committing source push...</span>";
-                const putResponse = await fetch(url, {
-                    method: "PUT",
-                    headers: {
-                        "Authorization": `token ${token}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: turnOn ? "Production Override: Activate Promo Banner" : "Production Override: Deactivate Promo Banner",
-                        content: updatedContentBase64,
-                        sha: currentSHA
-                    })
-                });
-
-                if (putResponse.ok) {
-                    status.innerHTML = `<span style='color: #4cd137;'>🟢 <strong>Success!</strong> Core updated. GitHub is now rebuilding your production platform. Changes will reflect live on phone devices within 60 seconds.</span>`;
-                } else {
-                    const errorDetails = await putResponse.json();
-                    status.innerHTML = `<span style='color: #ff6b6b;'>❌ Transaction Failed: ${errorDetails.message}</span>`;
-                }
-
-            } catch (err) {
-                status.innerHTML = `<span style='color: #ff6b6b;'>❌ Execution Interrupted: ${err.message}</span>`;
-            }
-        }
-    </script>
-</body>
-</html>
