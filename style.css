@@ -1,0 +1,67 @@
+/* ==========================================
+   GLOBAL RESPONSIVE MOBILE TWEAKS
+   ========================================== */
+@media screen and (max-width: 768px) {
+    body {
+        font-size: 18px; /* Slightly smaller baseline text sizes for smaller mobile viewports */
+    }
+
+    #nav {
+        height: 80px; /* Adjusted to 80px to hold the split text beautifully */
+        padding: 0 10px; /* Clean breathing room on the far edges */
+        display: flex;
+        align-items: center; /* Forces links and logo to align perfectly on their vertical centers */
+        justify-content: space-between;
+    }
+
+    #logo {
+        width: 45px;  /* Scales down logo image slightly */
+        height: 45px;
+    }
+
+    .body-content {
+        margin-top: 80px; /* Smooth transition fallback margin matching default nav container */
+        height: calc(100vh - 80px);
+        padding: 20px 15px;
+    }
+    
+    #rightsidecontainer {
+        gap: 8px; /* Snug spacing layout for logo components */
+        padding-left: 0px;
+    }
+
+    #leftsidecontainer {
+        gap: 4px; /* Brings Artists | Call | Text snugly close so they never drop ranks */
+        padding-right: 0px;
+    }
+
+    .logoHeader {
+        font-size: 13px; /* Smaller text size prevents crushing nav boundaries */
+        font-family: "syne mono", monospace;
+        max-width: 110px; /* Forces text to split into two structured rows exactly */
+        line-height: 1.2;
+        display: inline-block;
+    }
+
+    .nav-link {
+        padding: 6px 4px;
+        font-size: 14px;
+        min-height: 44px; /* Accessible tap target sizing matching Apple standards */
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .divider {
+        padding: 0 2px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+/* Ultra-small screen safety (iPhone SE and small devices) */
+@media screen and (max-width: 380px) {
+    .logoHeader {
+        display: none; /* Keeps navigation completely unbroken on micro viewports */
+    }
+}
