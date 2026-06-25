@@ -118,7 +118,7 @@
 
             try {
                 // Step 1: Query file metadata to capture the necessary update sequence context (SHA Hash)
-                const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const url = `https://api.github.com/repos/PricklyPear-who-codes/testing-no-server-push/contents/index.html`;
                 const getResponse = await fetch(url, {
                     headers: { "Authorization": `token ${token}` }
                 });
